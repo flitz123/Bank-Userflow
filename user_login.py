@@ -1,7 +1,7 @@
 user = {
-    "user_name": "amani_mumo",
-    "password": "mumo!123",
-    "email": "peacemumo107@gmail.com"
+    "user_name": "",
+    "password": "",
+    "email": ""
 }
 
 
