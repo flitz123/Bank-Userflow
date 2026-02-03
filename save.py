@@ -1,6 +1,6 @@
 import json
 import os
-from security import verify_value
+from security import verify_value, hash_value
 
 DATA_FILE = "data/users.json"
 
