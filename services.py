@@ -1,96 +1,57 @@
+from datetime import datetime
+
+
 class Account:
-    def __init__(self, name, balance):
-        self.name = name
+    def __init__(self, acc_id, acc_type, balance, transactions=None):
+        self.acc_id = acc_id
+        self.acc_type = acc_type
         self.balance = balance
+        self.transactions = transactions or []
 
-    def __str__(self):
-        return f"{self.name} has a balance of {self.balance}"
+    def deposit(self, amount):
+        if amount <= 0:
+            raise ValueError("Invalid deposit amount")
+        self.balance += amount
+        self._record("DEPOSIT", amount)
 
+    def withdraw(self, amount):
+        if amount <= 0:
+            raise ValueError("Invalid withdrawal amount")
+        if amount > self.balance:
+            raise ValueError("Insufficient funds")
+        self.balance -= amount
+        self._record("WITHDRAW", amount)
 
-class Loan:
-    def __init__(self, account: Account, eligibility_threshold: int, multiplier: int = 30):
-        self.account = account
-        self.eligibility_threshold = eligibility_threshold
-        self.max_amount = multiplier * account.balance
+    def _record(self, tx_type, amount):
+        self.transactions.append({
+            "type": tx_type,
+            "amount": amount,
+            "balance_after": self.balance,
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
 
-    def is_eligible(self):
-        return self.account.balance >= self.eligibility_threshold
-
-    def approve_loan(self, requested_amount):
-        if not self.is_eligible():
-            return False, "You are not eligible for a loan."
-        if requested_amount > self.max_amount:
-            return False, f"Requested amount exceeds your maximum eligible loan of {self.max_amount}."
-        return True, "Loan approved!"
-
-
-# --- Execution ---
-account = Account(name="Peace", balance=20000)
-loan = Loan(account=account, eligibility_threshold=10000)
-
-try:
-    requested_amount = int(
-        input("Enter the loan amount you want to apply for: "))
-except ValueError:
-    print("Invalid input. Please enter a numeric amount.")
-    exit()
-
-eligible, message = loan.approve_loan(requested_amount)
-print(f"{account.name}, {message}")
-
-
-class CashWithdrawal:
-    def __init__(self, account: Account, newBalance: int, withdrawAmount: int):
-        self.account = account
-        self.newBalance = newBalance
-        self.withdrawAmount = withdrawAmount
+    def print_statement(self):
+        print("\n======BANK STATEMENT======")
+        print(f"Account ID: {self.acc_id}")
+        print(f"Account Type: {self.acc_type}")
+        for tx in self.transactions:
+            print(
+                f"{tx['time']} | {tx['type']} | {tx['amount']} | Balance: {tx['balance_after']}")
+        print("--------------------------\n")
+        print(f"Current Balance: {self.balance}")
+        print("==========================\n")
 
 
-withdrawal_amount = int(input("Enter the amount you want to withdraw: "))
-new_balance = account.balance - withdrawal_amount
+class LoanAccount:
+    def __init__(self, amount, interest_rate=0.1):
+        self.amount = amount
+        self.remaining = int(amount * (1 + interest_rate))
+        self.status = "ACTIVE"
 
-if new_balance < account.balance:
-    print("Insufficient funds for this withdrawal.")
-else:
-    print(
-        f"Successfully withdrew {withdrawal_amount}. New balance is {new_balance}.")
-
-
-class CashDeposit:
-    def __init__(self, account: Account, newBalance: int, depositAmount: int):
-        self.account = account
-        self.newBalance = newBalance
-        self.depositAmount = depositAmount
-
-
-deposit_amount = int(input("Enter the amount you want to deposit: "))
-new_balance = account.balance + deposit_amount
-
-if new_balance < account.balance:
-    print("Invalid deposit amount.")
-else:
-    print(
-        f"Successfully deposited {deposit_amount}. New balance is {new_balance}.")
-
-
-class CheckBalance:
-    def __init__(self, account: Account, balance: int):
-        self.account = account
-        self.balance = balance
-
-
-print(f"Your current balance is: {account.balance}")
-
-
-class CreateAccount:
-    def __init__(self, user_name: str, password: str, email: str, deposit_amount: int = 0):
-        self.user_name = user_name
-        self.password = password
-        self.email = email
-        self.deposit_amount = deposit_amount
-
-
-new_account = input(
-    "Create your account by entering username, password, and email: ")
-deposit_amount = input("Enter initial deposit amount: ")
-print(f"Account created for {new_account}/n, new balance is {deposit_amount}.")
+    def repay(self, amount):
+        if amount <= 0:
+            raise ValueError("Invalid repayment amount")
+        self.remaining -= amount
+        if self.remaining <= 0:
+            self.remaining = 0
+            self.status = "CLEARED"

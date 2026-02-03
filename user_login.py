@@ -1,35 +1,22 @@
-user = {
-    "user_name": "",
-    "password": "",
-    "email": ""
-}
+from save import SaveService
+from security import verify_value
 
 
 def login():
-    print("Enter your credentials to login.")
+    db = SaveService()
+    data = db.load()
 
+    username = input("Username: ")
+    password = input("Password: ")
 
-user_input = {
-    "user_name": input("Enter your username: "),  # Prompt for username
-    "password": input("Enter your password: "),  # Prompt for password
-    "email": input("Enter your email: ")         # Prompt for email
-}
+    user = data.get(username)
+    if not user or not verify_value(password, user["password"]):
+        print("Invalid login credentials")
+        return None
 
-try:
-    if user_input["user_name"] == user["user_name"]:
-        print("Username is correct")
-    else:
-        print("Username is incorrect")
+    if user["locked"]:
+        print("ATM card locked to to multiple failed PIN attempts.")
+        return None
 
-    if user_input["password"] == user["password"]:
-        print("Password is correct")
-    else:
-        print("Password is incorrect")
-
-    if user_input["email"] == user["email"]:
-        print("Email is correct")
-    else:
-        print("Email is incorrect")
-
-except KeyError as e:
-    print(f"KeyError: {e}. Please ensure all keys are correct.")
+    print(f"Welcome {username}")
+    return username
